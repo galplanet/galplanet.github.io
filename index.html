@@ -31,7 +31,10 @@
        全局 Reset
     ==================== */
     * { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; }
+    html, body {
+      height: 100%; margin: 0;
+      overflow-x: hidden; /* 禁止横向滑动 */
+    }
     body {
       color: var(--text);
       background: var(--bg);
@@ -54,12 +57,24 @@
       border-bottom: 1px solid var(--border);
       z-index: 20;
     }
-    /* 左上角 Logo skeleton */
+    /* PC 端 Logo skeleton */
     .logo-skel {
       width: 120px; height: 42px;
       border-radius: 8px;
       background: var(--skel);
     }
+    /* 移动端汉堡按钮 */
+    .hamburger {
+      width: 28px; height: 20px;
+      display: none; /* 默认隐藏，在移动端显示 */
+      flex-direction: column; justify-content: space-between;
+      cursor: default;
+    }
+    .hamburger span {
+      height: 3px; border-radius: 2px;
+      background: var(--text);
+    }
+
     /* 搜索按钮 */
     .icon-btn {
       width: 40px; height: 40px;
@@ -68,6 +83,7 @@
       display: grid; place-items: center;
     }
     .icon-btn:hover { background: #f5f6f8; }
+
     /* 右上角头像 skeleton */
     .avatar-skel {
       width: 40px; height: 40px;
@@ -88,7 +104,7 @@
       padding: 24px 32px;
     }
 
-    /* 侧边栏 */
+    /* 侧边栏 (桌面端显示) */
     .sidebar {
       position: sticky; top: calc(var(--topbar-h) + 24px);
       align-self: start;
@@ -105,7 +121,6 @@
     }
     .nav-item:hover { background: #f3f4f6; }
     .nav-item.active { font-weight: 700; }
-    .nav-item svg { flex: 0 0 22px; }
 
     /* ====================
        帖子骨架
@@ -136,10 +151,23 @@
     .w-60{width:60%}.w-70{width:70%}.w-80{width:80%}.w-90{width:90%}
     .grow { flex: 1; }
 
-    /* 响应式 */
-    @media (max-width: 1100px) {
-      .layout { grid-template-columns: 1fr; max-width: min(840px, 100%); }
+    /* ====================
+       响应式：移动端优化
+    ==================== */
+    @media (max-width: 768px) {
+      /* 移动端：去掉 sidebar，只显示 feed */
+      .layout {
+        grid-template-columns: 1fr;
+        padding: 12px;
+      }
       .sidebar { display: none; }
+
+      /* 顶部 bar 调整 */
+      .topbar { padding: 0 12px; }
+
+      /* PC Logo 隐藏，汉堡按钮显示 */
+      .logo-skel { display: none; }
+      .hamburger { display: flex; }
     }
   </style>
 </head>
@@ -147,19 +175,20 @@
 
   <!-- 顶部导航 -->
   <header class="topbar">
-    <!-- 左上角 Logo skeleton -->
+    <!-- PC: logo skeleton | Mobile: 汉堡按钮 -->
     <div class="logo-skel" aria-hidden="true"></div>
+    <div class="hamburger" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
 
     <!-- 右上角：搜索按钮 + 头像 skeleton -->
     <div class="top-actions">
-      <!-- 搜索按钮 -->
       <button class="icon-btn" aria-label="搜索">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="11" cy="11" r="7"></circle>
           <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
         </svg>
       </button>
-      <!-- 头像 skeleton -->
       <div class="avatar-skel" aria-hidden="true"></div>
     </div>
   </header>
@@ -167,14 +196,13 @@
   <!-- 主布局 -->
   <div class="layout">
     
-    <!-- 左侧边栏 -->
+    <!-- 左侧边栏 (桌面端才显示) -->
     <aside class="sidebar">
       <nav class="nav">
         <a class="nav-item active" href="#">主页</a>
         <a class="nav-item" href="#">探索</a>
         <a class="nav-item" href="#">通知</a>
         <a class="nav-item" href="#">个人资料</a>
-        <!-- 发布按钮改成 nav-item -->
         <a class="nav-item" href="#">发布</a>
       </nav>
     </aside>
