@@ -54,14 +54,13 @@
       border-bottom: 1px solid var(--border);
       z-index: 20;
     }
-    .logo {
+    /* 左上角 Logo skeleton */
+    .logo-skel {
       width: 120px; height: 42px;
-      border: 1px solid var(--border);
       border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--muted); font-weight: 600;
+      background: var(--skel);
     }
-    .top-actions { display: flex; align-items: center; gap: 8px; }
+    /* 搜索按钮 */
     .icon-btn {
       width: 40px; height: 40px;
       border: none; background: transparent;
@@ -69,13 +68,13 @@
       display: grid; place-items: center;
     }
     .icon-btn:hover { background: #f5f6f8; }
-    .avatar {
+    /* 右上角头像 skeleton */
+    .avatar-skel {
       width: 40px; height: 40px;
-      border: 1px solid var(--border);
       border-radius: 50%;
-      background: #fff; color: var(--muted);
-      display: flex; align-items: center; justify-content: center;
+      background: var(--skel);
     }
+    .top-actions { display: flex; align-items: center; gap: 8px; }
 
     /* ====================
        主布局
@@ -107,14 +106,6 @@
     .nav-item:hover { background: #f3f4f6; }
     .nav-item.active { font-weight: 700; }
     .nav-item svg { flex: 0 0 22px; }
-    .post-btn {
-      width: 100%;
-      border: none;
-      background: var(--primary); color: #fff;
-      border-radius: var(--radius-pill);
-      padding: 12px 16px; font-weight: 700;
-      box-shadow: var(--shadow);
-    }
 
     /* ====================
        帖子骨架
@@ -131,7 +122,7 @@
     .row { display: flex; align-items: center; gap: 12px; }
     .between { display: flex; justify-content: space-between; align-items: center; }
 
-    /* Skeleton (无动画，纯灰块) */
+    /* Skeleton 基础形状 */
     .skel { background: var(--skel); border-radius: 8px; }
     .skel.avatar { width: 44px; height: 44px; border-radius: 50%; }
     .skel.dot { height: 10px; border-radius: 6px; }
@@ -156,7 +147,10 @@
 
   <!-- 顶部导航 -->
   <header class="topbar">
-    <div class="logo" aria-label="论坛图标">图标</div>
+    <!-- 左上角 Logo skeleton -->
+    <div class="logo-skel" aria-hidden="true"></div>
+
+    <!-- 右上角：搜索按钮 + 头像 skeleton -->
     <div class="top-actions">
       <!-- 搜索按钮 -->
       <button class="icon-btn" aria-label="搜索">
@@ -165,8 +159,8 @@
           <line x1="16.5" y1="16.5" x2="21" y2="21"></line>
         </svg>
       </button>
-      <!-- 用户头像 -->
-      <div class="avatar" title="用户头像">头像</div>
+      <!-- 头像 skeleton -->
+      <div class="avatar-skel" aria-hidden="true"></div>
     </div>
   </header>
 
@@ -180,8 +174,9 @@
         <a class="nav-item" href="#">探索</a>
         <a class="nav-item" href="#">通知</a>
         <a class="nav-item" href="#">个人资料</a>
+        <!-- 发布按钮改成 nav-item -->
+        <a class="nav-item" href="#">发布</a>
       </nav>
-      <button class="post-btn">发布</button>
     </aside>
 
     <!-- 主内容区：仅 1 个骨架卡片 -->
