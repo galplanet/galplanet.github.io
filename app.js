@@ -1,23 +1,26 @@
 // app.js
 document.addEventListener("DOMContentLoaded", () => {
-  // ========== 1. Skeleton 动画（JS控制） ==========
+  // 找到所有 skeleton
   const skeletons = document.querySelectorAll(".skel");
 
-  // 我们用 JS 定时切换 background-position 来模拟 shimmer
+  // 给每个 skeleton 设置渐变背景（覆盖掉静态 CSS）
   skeletons.forEach(el => {
     el.style.background = "linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%)";
     el.style.backgroundSize = "200% 100%";
+    el.style.transition = "background-position 0.2s linear";
   });
 
+  // 用 JS 循环模拟 shimmer
   let offset = 0;
   setInterval(() => {
-    offset = (offset + 5) % 200; // 往右平移
+    offset = (offset + 5) % 200;
     skeletons.forEach(el => {
       el.style.backgroundPosition = `${offset}% 0`;
     });
-  }, 50); // 每50ms刷新一次，约20fps
+  }, 60); // 每60ms刷新一次，大约16fps
+  
 
-  // ========== 2. 左侧导航栏图标 ==========
+  // ========== 左边栏 SVG 图标 ==========
   const icons = {
     home: `<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2">
              <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1v-10.5z"></path>
