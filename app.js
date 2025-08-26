@@ -51,3 +51,141 @@
     restoreSidebar();
   }
 })();
+
+(function () {
+  // 移动端侧边栏切换（汉堡按钮）
+  const hamburger = document.querySelector('.hamburger');
+  const sidebar = document.querySelector('.sidebar');
+  if (!hamburger || !sidebar) return;
+
+  // 简单判断是否为移动视口
+  function isMobile() {
+    return window.matchMedia('(max-width: 768px)').matches;
+  }
+
+  // 创建遮罩
+  function createBackdrop() {
+    const el = document.createElement('div');
+    el.className = 'sidebar-backdrop';
+    el.style.position = 'fixed';
+    el.style.top = 'var(--topbar-h)';
+    el.style.left = '0';
+    el.style.width = '100%';
+    el.style.height = 'calc(100% - var(--topbar-h))';
+    el.style.background = 'rgba(0,0,0,0.32)';
+    el.style.zIndex = '25';
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 220ms ease';
+    el.addEventListener('click', () => closeSidebar());
+    return el;
+  }
+
+  function openSidebar() {
+    if (!isMobile()) return;
+    // avoid reopening
+    if (hamburger.getAttribute('aria-expanded') === 'true') return;
+
+    // ensure real nav is restored before opening
+    const nav = sidebar.querySelector('.nav');
+    if (nav && nav.dataset.restored !== 'true') {
+      // try to restore (restoreSidebar defined earlier)
+      try { if (typeof restoreSidebar === 'function') restoreSidebar(); } catch (e) { /* ignore */ }
+    }
+
+    // Prepare inline styles for slide-in panel
+    sidebar.style.display = 'block';
+    sidebar.style.position = 'fixed';
+    sidebar.style.top = 'var(--topbar-h)';
+    sidebar.style.left = '0';
+    sidebar.style.height = 'calc(100% - var(--topbar-h))';
+    sidebar.style.width = '80%';
+    sidebar.style.maxWidth = '320px';
+    sidebar.style.zIndex = '30';
+    sidebar.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+    sidebar.style.background = 'var(--card)';
+    sidebar.style.transition = 'transform 220ms ease';
+    sidebar.style.transform = 'translateX(-100%)';
+
+    // add backdrop
+    let backdrop = document.querySelector('.sidebar-backdrop');
+    if (!backdrop) {
+      backdrop = createBackdrop();
+      document.body.appendChild(backdrop);
+      // force paint then show
+      requestAnimationFrame(() => {
+        backdrop.style.opacity = '1';
+      });
+    }
+
+    // animate sidebar in
+    requestAnimationFrame(() => {
+      sidebar.style.transform = 'translateX(0)';
+    });
+
+    hamburger.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeSidebar(force) {
+    const backdrop = document.querySelector('.sidebar-backdrop');
+    // if not open, nothing to do
+    if (hamburger.getAttribute('aria-expanded') !== 'true' && !force) return;
+
+    if (backdrop) {
+      backdrop.style.opacity = '0';
+      // remove after transition
+      backdrop.addEventListener('transitionend', function onEnd() {
+        backdrop.removeEventListener('transitionend', onEnd);
+        if (backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
+      });
+    }
+
+    if (sidebar) {
+      // animate out
+      sidebar.style.transform = 'translateX(-100%)';
+      // after animation, clear inline styles if forced or viewport now desktop
+      const cleanup = () => {
+        // only remove if exists
+        sidebar.style.display = '';
+        sidebar.style.position = '';
+        sidebar.style.top = '';
+        sidebar.style.left = '';
+        sidebar.style.height = '';
+        sidebar.style.width = '';
+        sidebar.style.maxWidth = '';
+        sidebar.style.zIndex = '';
+        sidebar.style.boxShadow = '';
+        sidebar.style.background = '';
+        sidebar.style.transition = '';
+        sidebar.style.transform = '';
+      };
+      if (force) {
+        cleanup();
+      } else {
+        // wait for transform transition to end
+        sidebar.addEventListener('transitionend', function onEnd() {
+          sidebar.removeEventListener('transitionend', onEnd);
+          cleanup();
+        });
+      }
+    }
+
+    hamburger.setAttribute('aria-expanded', 'false');
+  }
+
+  // 初始化 aria
+  hamburger.setAttribute('aria-expanded', 'false');
+
+  hamburger.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (!isMobile()) return;
+    const expanded = hamburger.getAttribute('aria-expanded') === 'true';
+    if (expanded) closeSidebar(); else openSidebar();
+  });
+
+  // 在窗口尺寸变化到 desktop 时，确保清理残留样式和遮罩
+  window.addEventListener('resize', () => {
+    if (!isMobile()) {
+      closeSidebar(true);
+    }
+  });
+})();
