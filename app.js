@@ -1,84 +1,53 @@
-async function fetchLatestPosts() {
-  const query = `
-    query GetLatest10Posts {
-      posts(first: 10, orderBy: TIMESTAMP_DESC) {
-        nodes {
-          postHash
-          body
-          poster { username }
-        }
-      }
+// app.js
+// 在页面加载完成后，将侧边栏从骨架占位替换为真实导航内容。
+// 设计要点：
+// - 如果找不到侧边栏或 nav，什么也不做（防御性编程）
+// - 保留 data-i18n 属性，便于以后做国际化替换
+// - 使用简单的淡入效果，避免强动画
+
+(function () {
+  function restoreSidebar() {
+    try {
+      const nav = document.querySelector('.sidebar .nav');
+      if (!nav) return;
+
+      // 如果已经被替换过，直接返回
+      if (nav.dataset.restored === 'true') return;
+
+      // 先淡出（如果当前可见），再替换内容并淡入
+      nav.style.transition = 'opacity 180ms ease';
+      nav.style.opacity = '0';
+
+      // 等一次帧再修改内容，保证过渡生效
+      requestAnimationFrame(() => {
+        // 真实导航的 HTML（保留 data-i18n 以便后续 i18n 替换）
+        nav.innerHTML = `
+          <a class="nav-item active" href="#" data-i18n="nav.home">主页</a>
+          <a class="nav-item" href="#" data-i18n="nav.explore">探索</a>
+          <a class="nav-item" href="#" data-i18n="nav.notifications">通知</a>
+          <a class="nav-item" href="#" data-i18n="nav.profile">个人资料</a>
+          <a class="nav-item" href="#" data-i18n="nav.create">发布</a>
+        `;
+
+        // 标记为已恢复，避免重复操作
+        nav.dataset.restored = 'true';
+
+        // 触发重绘后淡入
+        requestAnimationFrame(() => {
+          nav.style.opacity = '1';
+        });
+      });
+    } catch (e) {
+      // 安静失败，不抛出异常影响主线程
+      console.error('restoreSidebar error', e);
     }
-  `;
-
-  const res = await fetch("https://graphql-prod.deso.com/graphql", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ query })
-  });
-
-  const json = await res.json();
-  return json.data?.posts?.nodes || [];
-}
-
-function createPostCard(post) {
-  const card = document.createElement("article");
-  card.className = "card";
-
-  const header = document.createElement("div");
-  header.className = "row between";
-
-  const user = document.createElement("strong");
-  user.textContent = post.poster?.username || "匿名";
-
-  header.appendChild(user);
-  card.appendChild(header);
-
-  const body = document.createElement("div");
-  body.style.marginTop = "12px";
-  body.style.whiteSpace = "pre-wrap";
-
-  const fullText = post.body || "";
-  const maxLen = 180; // 过长自动折叠
-  if (fullText.length > maxLen) {
-    const shortText = fullText.slice(0, maxLen) + "…";
-    const span = document.createElement("span");
-    span.textContent = shortText;
-
-    const toggleBtn = document.createElement("button");
-    toggleBtn.textContent = "展开";
-    toggleBtn.style.marginLeft = "8px";
-    toggleBtn.style.color = "var(--primary)";
-    toggleBtn.style.border = "none";
-    toggleBtn.style.background = "transparent";
-    toggleBtn.style.cursor = "pointer";
-
-    let expanded = false;
-    toggleBtn.addEventListener("click", () => {
-      expanded = !expanded;
-      span.textContent = expanded ? fullText : shortText;
-      toggleBtn.textContent = expanded ? "收起" : "展开";
-    });
-
-    body.appendChild(span);
-    body.appendChild(toggleBtn);
-  } else {
-    body.textContent = fullText;
   }
 
-  card.appendChild(body);
-
-  return card;
-}
-
-async function init() {
-  const feed = document.querySelector(".feed");
-  feed.innerHTML = ""; // 清空骨架屏
-
-  const posts = await fetchLatestPosts();
-  posts.forEach(post => {
-    feed.appendChild(createPostCard(post));
-  });
-}
-
-document.addEventListener("DOMContentLoaded", init);
+  // 页面主脚本：在 DOMContentLoaded 时执行（app.js 在 head 被 deferred 或者在 load 时被插入）
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', restoreSidebar);
+  } else {
+    // 已经解析完成
+    restoreSidebar();
+  }
+})();
