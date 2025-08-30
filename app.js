@@ -45,10 +45,18 @@
 
   // 页面主脚本：在 DOMContentLoaded 时执行（app.js 在 head 被 deferred 或者在 load 时被插入）
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', restoreSidebar);
+    document.addEventListener('DOMContentLoaded', () => {
+      restoreSidebar();
+      // 延迟一帧保证骨架渲染，然后开始请求帖子模块
+      requestAnimationFrame(() => {
+        ensurePostsLoaded();
+      });
+    });
   } else {
     // 已经解析完成
     restoreSidebar();
+    // 请求帖子模块
+    ensurePostsLoaded();
   }
 })();
 
@@ -98,8 +106,10 @@
     sidebar.style.top = 'var(--topbar-h)';
     sidebar.style.left = '0';
     sidebar.style.height = 'calc(100% - var(--topbar-h))';
-    sidebar.style.width = '80%';
-    sidebar.style.maxWidth = '320px';
+    // 调整：在移动端收窄侧栏并去掉圆角
+    sidebar.style.width = '75%';
+    sidebar.style.maxWidth = '300px';
+    sidebar.style.borderRadius = '0';
     sidebar.style.zIndex = '30';
     sidebar.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
     sidebar.style.background = 'var(--card)';
@@ -189,3 +199,25 @@
     }
   });
 })();
+
+// 确保 posts.js 已加载并调用其 loadPosts 接口
+function ensurePostsLoaded() {
+  if (window.postsAPI && typeof window.postsAPI.loadPosts === 'function') {
+    try { window.postsAPI.loadPosts(); } catch (e) { console.error('postsAPI.loadPosts error', e); }
+    return;
+  }
+
+  // 动态加载 posts.js（非模块环境）
+  const s = document.createElement('script');
+  s.src = 'posts.js';
+  s.async = true;
+  s.onload = () => {
+    if (window.postsAPI && typeof window.postsAPI.loadPosts === 'function') {
+      try { window.postsAPI.loadPosts(); } catch (e) { console.error('postsAPI.loadPosts after load error', e); }
+    } else {
+      console.error('posts.js loaded but postsAPI.loadPosts not available');
+    }
+  };
+  s.onerror = () => console.error('Failed to load posts.js');
+  document.head.appendChild(s);
+}
